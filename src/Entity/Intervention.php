@@ -19,15 +19,16 @@ class Intervention
     private ?string $name = null;
 
     /**
-     * @var Collection<int, Patient>
+     * @var Collection<int, DemandeDevis>
      */
-    #[ORM\ManyToMany(targetEntity: Patient::class, mappedBy: 'intervention')]
-    private Collection $patients;
+    #[ORM\OneToMany(targetEntity: DemandeDevis::class, mappedBy: 'intervention_1')]
+    private Collection $demandeDevis;
 
     public function __construct()
     {
-        $this->patients = new ArrayCollection();
+        $this->demandeDevis = new ArrayCollection();
     }
+
 
     public function getId(): ?int
     {
@@ -47,29 +48,34 @@ class Intervention
     }
 
     /**
-     * @return Collection<int, Patient>
+     * @return Collection<int, DemandeDevis>
      */
-    public function getPatients(): Collection
+    public function getDemandeDevis(): Collection
     {
-        return $this->patients;
+        return $this->demandeDevis;
     }
 
-    public function addPatient(Patient $patient): static
+    public function addDemandeDevi(DemandeDevis $demandeDevi): static
     {
-        if (!$this->patients->contains($patient)) {
-            $this->patients->add($patient);
-            $patient->addIntervention($this);
+        if (!$this->demandeDevis->contains($demandeDevi)) {
+            $this->demandeDevis->add($demandeDevi);
+            $demandeDevi->setIntervention1($this);
         }
 
         return $this;
     }
 
-    public function removePatient(Patient $patient): static
+    public function removeDemandeDevi(DemandeDevis $demandeDevi): static
     {
-        if ($this->patients->removeElement($patient)) {
-            $patient->removeIntervention($this);
+        if ($this->demandeDevis->removeElement($demandeDevi)) {
+            // set the owning side to null (unless already changed)
+            if ($demandeDevi->getIntervention1() === $this) {
+                $demandeDevi->setIntervention1(null);
+            }
         }
 
         return $this;
     }
+
+
 }

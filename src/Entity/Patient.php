@@ -122,16 +122,20 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Photo::class, mappedBy: 'patient')]
     private Collection $photos;
 
+    
     /**
-     * @var Collection<int, Intervention>
+     * @var Collection<int, DemandeDevis>
      */
-    #[ORM\ManyToMany(targetEntity: Intervention::class, inversedBy: 'patients')]
-    private Collection $intervention;
+    #[ORM\OneToMany(targetEntity: DemandeDevis::class, mappedBy: 'patient')]
+    private Collection $demandeDevis;
+
+    #[ORM\OneToOne(mappedBy: 'patient', cascade: ['persist', 'remove'])]
+    private ?Devis $devis = null;
 
     public function __construct()
     {
         $this->photos = new ArrayCollection();
-        $this->intervention = new ArrayCollection();
+        $this->demandeDevis = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -454,26 +458,56 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+  
+
     /**
-     * @return Collection<int, Intervention>
+     * @return Collection<int, DemandeDevis>
      */
-    public function getIntervention(): Collection
+    public function getDemandeDevis(): Collection
     {
-        return $this->intervention;
+        return $this->demandeDevis;
     }
 
-    public function addIntervention(Intervention $intervention): static
+    public function addDemandeDevi(DemandeDevis $demandeDevi): static
     {
-        if (!$this->intervention->contains($intervention)) {
-            $this->intervention->add($intervention);
+        if (!$this->demandeDevis->contains($demandeDevi)) {
+            $this->demandeDevis->add($demandeDevi);
+            $demandeDevi->setPatient($this);
         }
 
         return $this;
     }
 
-    public function removeIntervention(Intervention $intervention): static
+    public function removeDemandeDevi(DemandeDevis $demandeDevi): static
     {
-        $this->intervention->removeElement($intervention);
+        if ($this->demandeDevis->removeElement($demandeDevi)) {
+            // set the owning side to null (unless already changed)
+            if ($demandeDevi->getPatient() === $this) {
+                $demandeDevi->setPatient(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDevis(): ?Devis
+    {
+        return $this->devis;
+    }
+
+    public function setDevis(?Devis $devis): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($devis === null && $this->devis !== null) {
+            $this->devis->setPatient(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($devis !== null && $devis->getPatient() !== $this) {
+            $devis->setPatient($this);
+        }
+
+        $this->devis = $devis;
 
         return $this;
     }
