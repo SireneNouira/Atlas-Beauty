@@ -38,7 +38,7 @@ class PatientGlobalDtoToEntityTransformer
 
         // Crée la photo associée
         $photo = new Photo();
-        $photo->setPhotoPath($dto->photo_path);
+        $photo->setPhotoFile($dto->photoFile); // Utilisez setPhotoFile pour définir le fichier
         $photo->setPatient($patient);
 
         // Crée la demande de devis associée

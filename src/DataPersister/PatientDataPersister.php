@@ -35,8 +35,8 @@ class PatientDataPersister implements ProcessorInterface
              $this->entityManager->persist($patient);
 
              foreach ($patient->getPhotos() as $photo) {
-                $photo->setPatient($patient);
-                $this->entityManager->persist($photo);
+                $photo->setPatient($patient); // Associe le patient à la photo
+                $this->entityManager->persist($photo); // Persiste la photo
             }
 
             foreach ($patient->getDemandeDevis() as $demandeDevis) {
@@ -45,6 +45,7 @@ class PatientDataPersister implements ProcessorInterface
                 $demandeDevis->setDateCreation(new \DateTime());
                 $this->entityManager->persist($demandeDevis);
             }
+            
             $this->entityManager->flush();
 
             return $patient; // Retournez l'entité Patient

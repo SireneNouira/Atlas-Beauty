@@ -2,6 +2,7 @@
 
 namespace App\Dto;
 
+use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -62,7 +63,8 @@ class PatientGlobalDto
 
     #[Assert\NotBlank(groups: ['photo:create'])]
     #[Groups(['patient:write'])]
-    public string $photo_path;
+    #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'])]
+    public ?File $photoFile = null;
 
     #[Assert\NotBlank]
     #[Groups(['patient:write'])]

@@ -130,6 +130,7 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Photo::class, mappedBy: 'patient')]
     private Collection $photos;
+  
 
     
     /**

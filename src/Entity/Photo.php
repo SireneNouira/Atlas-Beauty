@@ -2,28 +2,31 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
-use App\Repository\PhotoRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Attribute\Groups;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: PhotoRepository::class)]
-#[ApiResource(normalizationContext: ['groups' => ['photo:read']],
-denormalizationContext: ['groups' => ['photo:write']])]
+#[ORM\Entity]
+#[Vich\Uploadable]
 class Photo
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
-    #[Groups(['photo:write'])]
-    private ?string $photo_path = null;
-
-    #[ORM\ManyToOne(inversedBy: 'photos')]
+    #[ORM\ManyToOne(targetEntity: Patient::class, inversedBy: 'photos')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Patient $patient = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $photoPath = null;
+
+    #[Vich\UploadableField(mapping: 'patient_photo', fileNameProperty: 'photoPath')]
+    private ?File $photoFile = null;
+
+    // Getters et setters
 
     public function getId(): ?int
     {
@@ -32,14 +35,23 @@ class Photo
 
     public function getPhotoPath(): ?string
     {
-        return $this->photo_path;
+        return $this->photoPath;
     }
 
-    public function setPhotoPath(string $photo_path): static
+    public function setPhotoPath(?string $photoPath): self
     {
-        $this->photo_path = $photo_path;
-
+        $this->photoPath = $photoPath;
         return $this;
+    }
+
+    public function getPhotoFile(): ?File
+    {
+        return $this->photoFile;
+    }
+
+    public function setPhotoFile(?File $photoFile = null): void
+    {
+        $this->photoFile = $photoFile;
     }
 
     public function getPatient(): ?Patient
@@ -47,10 +59,9 @@ class Photo
         return $this->patient;
     }
 
-    public function setPatient(?Patient $patient): static
+    public function setPatient(?Patient $patient): self
     {
         $this->patient = $patient;
-
         return $this;
     }
 }
