@@ -2,10 +2,14 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\PhotoRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PhotoRepository::class)]
+#[ApiResource(normalizationContext: ['groups' => ['photo:read']],
+denormalizationContext: ['groups' => ['photo:write']])]
 class Photo
 {
     #[ORM\Id]
@@ -14,6 +18,7 @@ class Photo
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['photo:write'])]
     private ?string $photo_path = null;
 
     #[ORM\ManyToOne(inversedBy: 'photos')]

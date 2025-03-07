@@ -55,22 +55,22 @@ class Intervention
         return $this->demandeDevis;
     }
 
-    public function addDemandeDevi(DemandeDevis $demandeDevi): static
+    public function addDemandeDevis(DemandeDevis $demandeDevis): static
     {
-        if (!$this->demandeDevis->contains($demandeDevi)) {
-            $this->demandeDevis->add($demandeDevi);
-            $demandeDevi->setIntervention1($this);
+        if (!$this->demandeDevis->contains($demandeDevis)) {
+            $this->demandeDevis->add($demandeDevis);
+            $demandeDevis->setIntervention1($this);
         }
 
         return $this;
     }
 
-    public function removeDemandeDevi(DemandeDevis $demandeDevi): static
+    public function removeDemandeDevis(DemandeDevis $demandeDevis): static
     {
-        if ($this->demandeDevis->removeElement($demandeDevi)) {
+        if ($this->demandeDevis->removeElement($demandeDevis)) {
             // set the owning side to null (unless already changed)
-            if ($demandeDevi->getIntervention1() === $this) {
-                $demandeDevi->setIntervention1(null);
+            if ($demandeDevis->getIntervention1() === $this) {
+                $demandeDevis->setIntervention1(null);
             }
         }
 

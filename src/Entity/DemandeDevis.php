@@ -2,11 +2,15 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\DemandeDevisRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: DemandeDevisRepository::class)]
+#[ApiResource(normalizationContext: ['groups' => ['demande_devis:read']],
+denormalizationContext: ['groups' => ['demande_devis:write']])]
 class DemandeDevis
 {
     #[ORM\Id]
@@ -19,28 +23,47 @@ class DemandeDevis
     private ?Patient $patient = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['demande_devis:write'])]
     private ?string $note = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['demande_devis:write'])]
     private ?\DateTimeInterface $date_souhaite = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $status = null;
+    private ?string $status = 'envoyé';
 
     #[ORM\OneToOne(mappedBy: 'demande_devis', cascade: ['persist', 'remove'])]
     private ?Devis $devis = null;
 
     #[ORM\ManyToOne(inversedBy: 'demandeDevis')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['demande_devis:write'])]
     private ?Intervention $intervention_1 = null;
 
     #[ORM\ManyToOne(inversedBy: 'demandeDevis')]
+    #[Groups(['demande_devis:write'])]
     private ?Intervention $intervention_2 = null;
 
-
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $date_creation = null;
+    
+    public function __construct()
+    {
+        $this->date_creation = new \DateTime();
+    }
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getDateCreation(): ?\DateTimeInterface
+    {
+        return $this->date_creation;
+    }
+    public function setDateCreation(): ?\DateTimeInterface
+    {
+        return $this->date_creation;
     }
 
     public function getPatient(): ?Patient

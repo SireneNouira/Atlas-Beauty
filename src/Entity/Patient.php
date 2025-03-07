@@ -5,6 +5,7 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use App\DataPersister\PatientDataPersister;
+use App\Dto\PatientGlobalDto;
 use App\Repository\PatientRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,20 +14,28 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Symfony\Component\HttpFoundation\File\File;
 
 #[ORM\Entity(repositoryClass: PatientRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
+    normalizationContext: ['groups' => ['patient:read']],
     operations: [
         new Post(
+            input: PatientGlobalDto::class,
+            output: Patient::class,
             uriTemplate: '/register',
             denormalizationContext: ['groups' => ['patient:write']],
             validationContext: ['groups' => ['Default']],
             security: "is_granted('PUBLIC_ACCESS')",
-            processor: PatientDataPersister::class
+            processor: PatientDataPersister::class,
+            // inputFormats: ['multipart' => ['multipart/form-data']]
         )
     ]
 )]
+#[Vich\Uploadable]
 class Patient implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -41,7 +50,7 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var list<string> The user roles
      */
-    #[ORM\Column]
+    #[ORM\Column(type: 'json')]
     private array $roles = [];
 
     /**
@@ -468,22 +477,22 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->demandeDevis;
     }
 
-    public function addDemandeDevi(DemandeDevis $demandeDevi): static
+    public function addDemandeDevis(DemandeDevis $demandeDevis): static
     {
-        if (!$this->demandeDevis->contains($demandeDevi)) {
-            $this->demandeDevis->add($demandeDevi);
-            $demandeDevi->setPatient($this);
+        if (!$this->demandeDevis->contains($demandeDevis)) {
+            $this->demandeDevis->add($demandeDevis);
+            $demandeDevis->setPatient($this);
         }
 
         return $this;
     }
 
-    public function removeDemandeDevi(DemandeDevis $demandeDevi): static
+    public function removeDemandeDevis(DemandeDevis $demandeDevis): static
     {
-        if ($this->demandeDevis->removeElement($demandeDevi)) {
+        if ($this->demandeDevis->removeElement($demandeDevis)) {
             // set the owning side to null (unless already changed)
-            if ($demandeDevi->getPatient() === $this) {
-                $demandeDevi->setPatient(null);
+            if ($demandeDevis->getPatient() === $this) {
+                $demandeDevis->setPatient(null);
             }
         }
 
