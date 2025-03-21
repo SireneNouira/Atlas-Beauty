@@ -29,7 +29,7 @@ class PatientGlobalDto
     #[Groups(['patient:write', 'patient:read'])]
     public string $civilite;
 
-    #[Assert\NotBlank]
+
     #[Groups(['patient:write', 'patient:read'])]
     public string $annee_naissance;
 
@@ -80,7 +80,7 @@ class PatientGlobalDto
     #[Groups(['patient:write', 'patient:read'])]
     public string $intervention_1_name;
 
-    #[Assert\NotBlank]
+   
     #[Groups(['patient:write', 'patient:read'])]
     public string $intervention_2_name;
 }

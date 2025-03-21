@@ -1,8 +1,9 @@
 <?php
+
 namespace App\DataTransformer;
 
-use ApiPlatform\Serializer\AbstractItemNormalizer;
-use App\Dto\PatientCreationDto;
+
+
 use App\Dto\PatientGlobalDto;
 use App\Entity\Patient;
 use App\Entity\Photo;
@@ -10,17 +11,17 @@ use App\Entity\DemandeDevis;
 use App\Entity\Intervention;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
-
 
 class PatientGlobalDtoToEntityTransformer
 {
-    public function __construct(private SerializerInterface $serializer,private EntityManagerInterface  $entityManager )
-    {
-    }
 
-    public function transform(PatientGlobalDto $dto, Patient $patient ): Patient
+    public function __construct(
+        private SerializerInterface $serializer,
+        private EntityManagerInterface $entityManager,
+    ) {}
+
+    public function transform(PatientGlobalDto $dto, Patient $patient,  array $context = []): Patient
     {
         // Si un patient existe déjà (pour une mise à jour), on le récupère
         $context = [];
@@ -36,10 +37,15 @@ class PatientGlobalDtoToEntityTransformer
             $context
         );
 
-        // Crée la photo associée
-        $photo = new Photo();
-        $photo->setPhotoFile($dto->photoFile); // Utilisez setPhotoFile pour définir le fichier
-        $photo->setPatient($patient);
+        if ($dto->photoFile) {
+            $photo = new Photo();
+            $photo->setPhotoFile($dto->photoFile); // VichUploaderBundle gère le reste
+            $photo->setPatient($patient);
+    
+            // Associer la photo au patient
+            $patient->addPhoto($photo);
+        }
+
 
         // Crée la demande de devis associée
         $demandeDevis = new DemandeDevis();
@@ -49,8 +55,8 @@ class PatientGlobalDtoToEntityTransformer
         $demandeDevis->setStatus('envoyé');
         $demandeDevis->setDateCreation(new \DateTime());
 
-           // 🔹 Rechercher les interventions dans la base de données
-           if ($dto->intervention_1_name) {
+        // 🔹 Rechercher les interventions dans la base de données
+        if ($dto->intervention_1_name) {
             $intervention1 = $this->entityManager
                 ->getRepository(Intervention::class)
                 ->findOneBy(['name' => $dto->intervention_1_name]);
@@ -71,7 +77,6 @@ class PatientGlobalDtoToEntityTransformer
         }
 
         // Associe les entités
-        $patient->addPhoto($photo);
         $patient->addDemandeDevis($demandeDevis);
 
         return $patient;

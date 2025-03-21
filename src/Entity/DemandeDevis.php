@@ -26,7 +26,7 @@ class DemandeDevis
     #[Groups(['demande_devis:write'])]
     private ?string $note = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: "date", nullable: true)]
     #[Groups(['demande_devis:write'])]
     private ?\DateTimeInterface $date_souhaite = null;
 

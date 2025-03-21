@@ -3,7 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\DataPersister\PatientDataPersister;
 use App\Dto\PatientGlobalDto;
 use App\Repository\PatientRepository;
@@ -14,15 +18,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Symfony\Component\Serializer\Attribute\MaxDepth;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
-use Symfony\Component\HttpFoundation\File\File;
+
 
 #[ORM\Entity(repositoryClass: PatientRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[ApiResource(
     normalizationContext: ['groups' => ['patient:read']],
     operations: [
+        new Get(
+            security: "is_granted('PATIENT_VIEW', object)"
+        ),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN')"
+        ),
         new Post(
             input: PatientGlobalDto::class,
             output: Patient::class,
@@ -31,11 +39,17 @@ use Symfony\Component\HttpFoundation\File\File;
             validationContext: ['groups' => ['Default']],
             security: "is_granted('PUBLIC_ACCESS')",
             processor: PatientDataPersister::class,
-            // inputFormats: ['multipart' => ['multipart/form-data']]
+            // inputFormats: ['multipart' => ['multipart/form-data'], 'json' => ['application/json']]
+        ),
+        new Put(
+            security: "is_granted('PATIENT_EDIT', object)",
+            denormalizationContext: ['groups' => ['patient:update']]
+        ),
+        new Delete(
+            security: "is_granted('PATIENT_DELETE', object)"
         )
     ]
 )]
-#[Vich\Uploadable]
 class Patient implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -72,9 +86,9 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['patient:write'])]
     private ?string $civilite = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: "integer", nullable: true)]
     #[Groups(['patient:write'])]
-    private ?\DateTimeInterface $annee_naissance = null;
+    private ?int $annee_naissance = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $adress = null;
@@ -97,13 +111,13 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['patient:write'])]
     private ?string $tel = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(type: "decimal", precision: 5, scale: 2, nullable: true)]
     #[Groups(['patient:write'])]
-    private ?string $poids = null;
+    private ?float $poids = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(type: "decimal", precision: 5, scale: 1, nullable: true)]
     #[Groups(['patient:write'])]
-    private ?string $taille = null;
+    private ?float $taille = null;
 
     #[ORM\Column]
     #[Groups(['patient:write'])]
@@ -125,10 +139,7 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $antecendent_chirurgicaux = null;
 
-    /**
-     * @var Collection<int, Photo>
-     */
-    #[ORM\OneToMany(targetEntity: Photo::class, mappedBy: 'patient')]
+    #[ORM\OneToMany(mappedBy: "patient", targetEntity: Photo::class, cascade: ["persist", "remove"])]
     private Collection $photos;
   
 
@@ -263,7 +274,7 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->annee_naissance;
     }
 
-    public function setAnneeNaissance(\DateTimeInterface $annee_naissance): static
+    public function setAnneeNaissance( $annee_naissance): static
     {
         $this->annee_naissance = $annee_naissance;
 
@@ -438,33 +449,30 @@ class Patient implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, Photo>
-     */
     public function getPhotos(): Collection
     {
         return $this->photos;
     }
-
-    public function addPhoto(Photo $photo): static
+    
+    public function addPhoto(Photo $photo): self
     {
         if (!$this->photos->contains($photo)) {
             $this->photos->add($photo);
             $photo->setPatient($this);
         }
-
+    
         return $this;
     }
 
-    public function removePhoto(Photo $photo): static
+    public function removePhoto(Photo $photo): self
     {
         if ($this->photos->removeElement($photo)) {
-            // set the owning side to null (unless already changed)
+            // Déconnecter la photo du patient
             if ($photo->getPatient() === $this) {
                 $photo->setPatient(null);
             }
         }
-
+    
         return $this;
     }
 
