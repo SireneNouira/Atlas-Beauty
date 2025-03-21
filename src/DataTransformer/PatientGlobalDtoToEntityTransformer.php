@@ -37,6 +37,9 @@ class PatientGlobalDtoToEntityTransformer
             $context
         );
 
+        $patient->setPoids((float) $dto->poids); // Utilisez $dto au lieu de $object
+        $patient->setTaille((float) $dto->taille); // Utilisez $dto au lieu de $object
+
         if ($dto->photoFile) {
             $photo = new Photo();
             $photo->setPhotoFile($dto->photoFile); // VichUploaderBundle gère le reste

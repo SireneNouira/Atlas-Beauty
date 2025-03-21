@@ -5,6 +5,7 @@ namespace App\Dto;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints\Type;
 
 class PatientGlobalDto
 {
@@ -31,7 +32,7 @@ class PatientGlobalDto
 
 
     #[Groups(['patient:write', 'patient:read'])]
-    public string $annee_naissance;
+    public  $annee_naissance;
 
     #[Assert\NotBlank]
     #[Groups(['patient:write', 'patient:read'])]
@@ -48,7 +49,7 @@ class PatientGlobalDto
     #[Assert\NotBlank]
     #[Groups(['patient:write', 'patient:read'])]
     public string $poids;
-
+    
     #[Assert\NotBlank]
     #[Groups(['patient:write', 'patient:read'])]
     public string $taille;
@@ -61,18 +62,17 @@ class PatientGlobalDto
     #[Groups(['patient:write', 'patient:read'])]
     public bool $alcool;
 
-    #[Assert\NotBlank(groups: ['photo:create'])]
     #[Groups(['patient:write'])]
-    #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'])]
+    #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'], mimeTypesMessage: 'Veuillez envoyer une image valide (JPEG ou PNG).', notFoundMessage: 'Aucun fichier trouvé.')]
     public ?File $photoFile = null;
+    
 
     #[Assert\NotBlank]
     #[Groups(['patient:write'])]
     public string $note;
 
-    #[Assert\NotBlank]
     #[Groups(['patient:write', 'patient:read'])]
-    public string $date_souhaite;
+    public $date_souhaite;
 
 
 

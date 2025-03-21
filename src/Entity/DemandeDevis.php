@@ -3,6 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Repository\DemandeDevisRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -10,7 +15,27 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: DemandeDevisRepository::class)]
 #[ApiResource(normalizationContext: ['groups' => ['demande_devis:read']],
-denormalizationContext: ['groups' => ['demande_devis:write']])]
+denormalizationContext: ['groups' => ['demande_devis:write']],
+operations: [
+    new Get(
+        security: "is_granted('DEMANDE_DEVIS_VIEW', object)"
+    ),
+    new GetCollection(
+        security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_ASSISTANT')"
+    ),
+    new Post(
+        security: "is_granted('DEMANDE_DEVIS_CREATE')",
+        securityMessage: "Vous avez déjà une demande de devis en cours. Supprimez-la avant d'en créer une nouvelle."
+    ),
+    new Put(
+        security: "is_granted('DEMANDE_DEVIS_EDIT', object)",
+        securityMessage: "Vous ne pouvez pas modifier cette demande de devis."
+    ),
+    new Delete(
+        security: "is_granted('DEMANDE_DEVIS_DELETE', object)",
+        securityMessage: "Vous ne pouvez pas supprimer cette demande de devis."
+    )
+])]
 class DemandeDevis
 {
     #[ORM\Id]
